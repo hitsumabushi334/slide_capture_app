@@ -10,9 +10,10 @@ author = "Your Name" # 必要に応じて変更してください
 icon_path = "app_icon.ico" # アイコンファイルのパス。不要な場合はNoneまたはコメントアウト
 
 # --- ビルドオプション ---
-base = None
-if sys.platform == "win32":
-    base = "Win32GUI"
+# base = None
+# if sys.platform == "win32":
+#     base = "Win32GUI"
+base = None # デバッグ用にコンソールを表示
 
 # --- 実行可能ファイルの定義 ---
 executables = [
@@ -33,9 +34,9 @@ executables = [
 #   zip_include_packages: zipファイルに含めるパッケージ (デフォルトは*)
 #   zip_exclude_packages: zipファイルから除外するパッケージ (例: tkinter)
 build_exe_options = {
-    "packages": ["tkinter", "cv2", "numpy", "PIL"], # PillowはPILとして認識されることがある
+    "packages": ["tkinter", "cv2", "numpy"], # Pillowを削除し、cx_Freezeの自動検出に期待
     "includes": [],
-    "excludes": ["tkinter.test", "tkinter.tix", "distutils", "unittest"], # 不要なものを除外
+    "excludes": ["tkinter.test", "tkinter.tix", "distutils"], # unittestを除外リストから削除
     "include_files": [icon_path] if os.path.exists(icon_path) else [], # アイコンが存在する場合のみ含める
     "zip_include_packages": ["*"],
     "zip_exclude_packages": ["tkinter"], # tkinterはzipに含めない方が良い場合がある
