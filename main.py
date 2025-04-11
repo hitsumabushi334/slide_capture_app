@@ -5,8 +5,9 @@ import threading
 import time
 from datetime import datetime
 import os
-from PIL import ImageGrab, Image
+
 import cv2
+from PIL import Image, ImageGrab
 import numpy as np
 
 class SlideCaptureApp:
