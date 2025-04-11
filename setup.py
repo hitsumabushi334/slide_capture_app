@@ -36,7 +36,7 @@ build_exe_options = {
     "packages": ["tkinter", "cv2", "numpy"], # Pillowを削除し、cx_Freezeの自動検出に期待
     "includes": [],
     "excludes": ["tkinter.test", "tkinter.tix", "distutils"], # unittestを除外リストから削除
-    "include_files": [icon_path] if os.path.exists(icon_path) else [] + [("C:\\Users\\issho\\anaconda3\\Library\\bin\\zlib.dll", "zlib.dll")], # zlib.dll を Anaconda の Library/bin からコピー
+    "include_files": [icon_path] if os.path.exists(icon_path) else [], # 環境固有のパス指定を削除
     "zip_include_packages": ["*"],
     "zip_exclude_packages": ["tkinter"], # tkinterはzipに含めない方が良い場合がある
 }
