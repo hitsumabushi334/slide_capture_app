@@ -10,16 +10,15 @@ author = "Your Name" # 必要に応じて変更してください
 icon_path = "app_icon.ico" # アイコンファイルのパス。不要な場合はNoneまたはコメントアウト
 
 # --- ビルドオプション ---
-# base = None
-# if sys.platform == "win32":
-#     base = "Win32GUI"
-base = None # デバッグ用にコンソールを表示
+base_type = None
+if sys.platform == "win32":
+    base_type = "gui"  # 文字列リテラルを使用
 
 # --- 実行可能ファイルの定義 ---
 executables = [
     Executable(
         "main.py",
-        base=base,
+        base=base_type,  # 変数名をbase_typeに変更
         icon=icon_path if os.path.exists(icon_path) else None, # アイコンが存在する場合のみ設定
         target_name="SlideCaptureApp.exe"
     )
@@ -37,7 +36,7 @@ build_exe_options = {
     "packages": ["tkinter", "cv2", "numpy"], # Pillowを削除し、cx_Freezeの自動検出に期待
     "includes": [],
     "excludes": ["tkinter.test", "tkinter.tix", "distutils"], # unittestを除外リストから削除
-    "include_files": [icon_path] if os.path.exists(icon_path) else [], # アイコンが存在する場合のみ含める
+    "include_files": [icon_path] if os.path.exists(icon_path) else [] + [("C:\\Users\\issho\\anaconda3\\DLLs\\zlib.dll", "zlib.dll")], # zlib.dll を追加
     "zip_include_packages": ["*"],
     "zip_exclude_packages": ["tkinter"], # tkinterはzipに含めない方が良い場合がある
 }
