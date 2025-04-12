@@ -21,6 +21,7 @@ class SlideCaptureApp:
         self.last_image = None
         self.saved_count = 0
         self.last_saved_filename = ""
+        self.last_saved_filepath = None # 前回保存したファイルのフルパス
         self.save_folder_name = tk.StringVar()
 
         # --- UI要素の作成 ---
@@ -125,9 +126,30 @@ class SlideCaptureApp:
                     self.save_image(current_image_cv)
                     self.last_image = current_image_cv
                 else:
-                    # TODO: 要件定義書の「よりきれいで情報量が多い画像」の判断基準を実装
-                    print("類似画像のためスキップ")
-                    pass
+                    # 画像が類似している場合、品質を比較して置き換えるか判断
+                    current_quality = self.evaluate_image_quality(current_image_cv)
+                    # last_image は前回保存または高品質と判断された画像データ
+                    last_quality = self.evaluate_image_quality(self.last_image)
+
+                    print(f"品質比較 - 現在: {current_quality}, 前回: {last_quality}")
+
+                    # ファイルサイズが大きい方を優先、同じならシャープネスが高い方
+                    if current_quality[1] > last_quality[1] or \
+                       (current_quality[1] == last_quality[1] and current_quality[0] > last_quality[0]):
+                        print("新規画像の方が高品質なため、古い画像を置き換えます。")
+                        # 古いファイルを削除
+                        if self.last_saved_filepath and os.path.exists(self.last_saved_filepath):
+                            try:
+                                os.remove(self.last_saved_filepath)
+                                print(f"古い画像を削除: {self.last_saved_filepath}")
+                            except OSError as e:
+                                print(f"古い画像の削除に失敗: {e}")
+                        # 新しい画像を保存
+                        self.save_image(current_image_cv)
+                        self.last_image = current_image_cv # last_image を高品質な新しい画像に更新
+                    else:
+                        print("新規画像の方が品質が低い、または同等なためスキップ")
+                        pass # 新規画像を破棄
 
             except Exception as e:
                 print(f"キャプチャ中にエラーが発生しました: {e}")
@@ -179,9 +201,34 @@ class SlideCaptureApp:
 
             self.saved_count += 1
             self.last_saved_filename = filename
+            self.last_saved_filepath = save_path # 保存したファイルのフルパスを記録
             # print(f"画像を保存しました: {save_path}")
         except Exception as e:
             print(f"画像保存中にエラー: {e}")
+
+    def evaluate_image_quality(self, image_cv):
+        """画像の品質を評価する (シャープネスとファイルサイズ)"""
+        try:
+            # 1. シャープネス (ラプラシアン分散)
+            gray = cv2.cvtColor(image_cv, cv2.COLOR_BGR2GRAY)
+            laplacian_var = cv2.Laplacian(gray, cv2.CV_64F).var()
+
+            # 2. ファイルサイズ (メモリ上でのPNGエンコードサイズ)
+            #    品質比較のため、圧縮率の低いPNGで比較する
+            result, encoded_image = cv2.imencode('.png', image_cv)
+            if not result:
+                print("警告: 画像のエンコードに失敗しました。")
+                file_size = 0
+            else:
+                file_size = len(encoded_image)
+
+            return laplacian_var, file_size
+        except cv2.error as e:
+            print(f"OpenCVエラー（品質評価中）: {e}")
+            return 0.0, 0 # エラー時は最低品質とする
+        except Exception as e:
+            print(f"品質評価中に予期せぬエラー: {e}")
+            return 0.0, 0 # エラー時は最低品質とする
 
     def on_closing(self):
         """ウィンドウが閉じられたときの処理"""
