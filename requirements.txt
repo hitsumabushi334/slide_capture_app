@@ -1,3 +1,5 @@
 opencv-python
 Pillow
 numpy
+cv2
+cx_Freeze
