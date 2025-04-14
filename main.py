@@ -170,18 +170,49 @@ class SlideCaptureApp:
 
     def save_image(self, image_cv):
         """画像をファイルに保存する"""
+        save_path = None # エラーメッセージでパスを表示するため
         try:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
             filename = f"screenshot_{timestamp}.png"
             save_path = os.path.join(self.capture_save_path, filename)
 
-            cv2.imwrite(save_path, image_cv)
+            if image_cv is None or image_cv.size == 0:
+                print(f"警告: 保存しようとした画像データが無効です。スキップします。")
+                return
+
+            # imwriteの実行と結果確認
+            success = cv2.imwrite(save_path, image_cv)
+            if not success:
+                 # imwriteがFalseを返す場合（ディスクフル、権限問題など）
+                 # より具体的なエラーメッセージを生成
+                 raise IOError(f"ファイル書き込みに失敗しました。パス: {save_path}")
 
             self.saved_count += 1
             self.last_saved_filename = filename
-            # print(f"画像を保存しました: {save_path}")
+            # print(f"画像を保存しました: {save_path}") # デバッグ用
+
+        except cv2.error as e:
+             # OpenCV固有のエラー
+             # スレッドからmessageboxを直接呼べないので、printで出力するか、
+             # self.root.after を使う必要があるが、ここではprintにしておく
+             print(f"エラー (保存): 画像保存中にOpenCVエラーが発生しました:\n{e}")
+             if save_path:
+                 print(f"保存先パスを確認してください: {save_path}")
+             # self.show_error_message("エラー (保存)", error_msg) # GUIに表示する場合
+        except IOError as e:
+             # 書き込み失敗の可能性が高い (権限 or ディスク容量)
+             print(f"エラー (保存): 画像ファイル書き込みに失敗しました:\n{e}")
+             if save_path:
+                 print(f"指定されたフォルダへの書き込み権限があるか、ディスク容量を確認してください。\nパス: {save_path}")
+             else:
+                 print(f"保存先フォルダへの書き込み権限があるか、ディスク容量を確認してください。")
+             # self.show_error_message("エラー (保存)", error_msg) # GUIに表示する場合
         except Exception as e:
-            print(f"画像保存中にエラー: {e}")
+            # その他の予期せぬエラー
+            print(f"エラー (保存): 画像保存中に予期せぬエラーが発生しました:\n{e}")
+            if save_path:
+                 print(f"パス: {save_path}")
+            # self.show_error_message("エラー (保存)", error_msg) # GUIに表示する場合
 
     def on_closing(self):
         """ウィンドウが閉じられたときの処理"""
