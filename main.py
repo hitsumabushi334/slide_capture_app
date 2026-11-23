@@ -86,9 +86,7 @@ class SlideCaptureApp:
             else:
                 self.status_label.config(foreground="black")  # 通常時は黒文字
             self.status_label.config(text=status_text)
-            # is_capturing が True の間だけ再スケジュール
-            if self.is_capturing:
-                self.root.after(1000, self.update_status)
+            self.root.after(1000, self.update_status)
         else:
             final_status = f"停止しました。\n合計保存枚数: {self.saved_count}"
             if self.last_saved_filename:
@@ -241,29 +239,17 @@ class SlideCaptureApp:
                 current_image_cv = np.array(current_image_pil)
                 current_image_cv = cv2.cvtColor(current_image_cv, cv2.COLOR_RGB2BGR)
 
-                if current_image_cv is None or current_image_cv.size == 0:
-                    logger.error(
-                        "エラー: 画像データの変換に失敗しました (Noneまたはサイズ0)。"
-                    )
-                    self.error_occurred_in_thread = True
-                    time.sleep(2.0)
-                    continue
-
                 # 3. 前回の画像と比較
                 if self.last_image is None:
                     logger.info("最初の画像を取得しました。保存します。")
                     self.save_image(current_image_cv)
                     self.last_image = current_image_cv
-                else:
-                    if not self.is_similar(current_image_cv, self.last_image):
-                        logger.info(
-                            "新しい画像または類似していない画像を検出しました。保存します。"
-                        )
-                        self.save_image(current_image_cv)
-                        self.last_image = current_image_cv
-                    else:
-                        # logger.debug("類似画像のためスキップ") # DEBUGレベルに変更
-                        pass
+                elif not self.is_similar(current_image_cv, self.last_image):
+                    logger.info(
+                        "新しい画像または類似していない画像を検出しました。保存します。"
+                    )
+                    self.save_image(current_image_cv)
+                    self.last_image = current_image_cv
 
             except (OSError, UnidentifiedImageError) as e:
                 logger.exception(f"エラー (キャプチャ/変換): {type(e).__name__} - {e}")
