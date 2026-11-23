@@ -9,7 +9,7 @@ import logging  # logging モジュールをインポート
 import traceback  # スタックトレース取得のため
 
 import cv2
-from PIL import Image, ImageGrab, UnidentifiedImageError
+from PIL import ImageGrab, UnidentifiedImageError
 import numpy as np
 
 # --- ロギング設定 ---
